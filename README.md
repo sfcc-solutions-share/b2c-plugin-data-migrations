@@ -7,8 +7,7 @@ This plugin is a port of the migration and feature system from [b2c-tools](https
 ## Installation
 
 ```bash
-# Link the plugin into your b2c-cli installation
-b2c plugins link /path/to/b2c-plugin-data-migrations
+b2c plugins install b2c-plugin-data-migrations
 ```
 
 ## Peer Dependencies
