@@ -4,6 +4,7 @@ import {getLogger} from '@salesforce/b2c-tooling-sdk/logging';
 import {
   siteArchiveImport,
   siteArchiveExport,
+  siteArchiveExportToBuffer,
   executeJob,
   waitForJob,
   type ExportDataUnitsConfiguration,
@@ -39,10 +40,7 @@ async function siteArchiveExportText(
   instance: B2CInstance,
   dataUnits: Partial<ExportDataUnitsConfiguration>,
 ): Promise<Map<string, string>> {
-  const result = await siteArchiveExport(instance, dataUnits);
-  if (!result.data) {
-    throw new Error('No archive data returned from export');
-  }
+  const result = await siteArchiveExportToBuffer(instance, dataUnits);
   return extractArchiveToTextMap(result.data);
 }
 
