@@ -1,6 +1,6 @@
 {
   "name": "b2c-plugin-data-migrations",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "B2C CLI plugin for data migrations and feature management",
   "author": "Charles Lavery",
   "license": "MIT",
