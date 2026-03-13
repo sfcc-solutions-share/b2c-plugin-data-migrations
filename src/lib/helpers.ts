@@ -15,6 +15,7 @@ import {
   deleteCartridges,
   reloadCodeVersion,
 } from '@salesforce/b2c-tooling-sdk/operations/code';
+import * as xml2js from 'xml2js';
 import {createArchiveFromTextMap, extractArchiveToTextMap} from './archive-utils.js';
 import {getInstanceFeatureState, updateFeatureState} from './state.js';
 import type {MigrationHelpers, GlobalConfig} from './types.js';
@@ -42,6 +43,57 @@ async function siteArchiveExportText(
 ): Promise<Map<string, string>> {
   const result = await siteArchiveExportToBuffer(instance, dataUnits);
   return extractArchiveToTextMap(result.data);
+}
+
+/**
+ * Export a site archive and return as a map of filenames to parsed objects.
+ * XML files are parsed via xml2js, JSON files via JSON.parse, others as strings.
+ */
+async function siteArchiveExportJSON(
+  instance: B2CInstance,
+  dataUnits: Partial<ExportDataUnitsConfiguration>,
+): Promise<Map<string, unknown>> {
+  const textMap = await siteArchiveExportText(instance, dataUnits);
+  const jsonMap = new Map<string, unknown>();
+  for (const [filename, contents] of textMap.entries()) {
+    if (filename.endsWith('.json')) {
+      try {
+        jsonMap.set(filename, JSON.parse(contents));
+      } catch {
+        jsonMap.set(filename, {});
+      }
+    } else if (filename.endsWith('.xml')) {
+      jsonMap.set(filename, await xml2js.parseStringPromise(contents));
+    } else {
+      jsonMap.set(filename, contents);
+    }
+  }
+  return jsonMap;
+}
+
+/**
+ * Import a site archive from a map of filenames to parsed objects.
+ * XML files are built via xml2js.Builder, JSON files via JSON.stringify, others as strings.
+ */
+async function siteArchiveImportJSON(
+  instance: B2CInstance,
+  data: Map<string, unknown>,
+  options: {archiveName?: string} = {},
+): Promise<void> {
+  const builder = new xml2js.Builder();
+  const textMap = new Map<string, string>();
+  for (const [filename, content] of data.entries()) {
+    if (filename.endsWith('.json')) {
+      textMap.set(filename, JSON.stringify(content, null, 2));
+    } else if (filename.endsWith('.xml')) {
+      textMap.set(filename, builder.buildObject(content));
+    } else {
+      textMap.set(filename, content as string);
+    }
+  }
+  const archiveName = options.archiveName ?? `json-import-${Date.now()}`;
+  const buffer = await createArchiveFromTextMap(textMap, archiveName);
+  await siteArchiveImport(instance, buffer, {archiveName});
 }
 
 function sleep(ms: number): Promise<void> {
@@ -100,7 +152,17 @@ export function buildHelpers(
       const opts = params
         ? {parameters: params as {name: string; value: string}[]}
         : undefined;
-      return executeJob(instance, jobId, opts);
+      try {
+        return await executeJob(instance, jobId, opts);
+      } catch (e) {
+        const msg = (e as Error).message ?? '';
+        if (msg.includes('already running')) {
+          logger.warn(`Job ${jobId} already running, waiting 10s and retrying...`);
+          await sleep(10000);
+          return executeJob(instance, jobId, opts);
+        }
+        throw e;
+      }
     },
 
     // helpers.waitForJob(env, jobId, executionId) → SDK waitForJob(instance, jobId, executionId)
@@ -130,6 +192,16 @@ export function buildHelpers(
     // helpers.siteArchiveExportText(env, dataUnits) → export + extract
     siteArchiveExportText: async (_env: unknown, dataUnits: Partial<ExportDataUnitsConfiguration>) => {
       return siteArchiveExportText(instance, dataUnits);
+    },
+
+    // helpers.siteArchiveExportJSON(env, dataUnits) → export + parse XML/JSON
+    siteArchiveExportJSON: async (_env: unknown, dataUnits: Partial<ExportDataUnitsConfiguration>) => {
+      return siteArchiveExportJSON(instance, dataUnits);
+    },
+
+    // helpers.siteArchiveImportJSON(env, data, opts?) → build XML/JSON + import
+    siteArchiveImportJSON: async (_env: unknown, data: Map<string, unknown>, opts?: {archiveName?: string}) => {
+      return siteArchiveImportJSON(instance, data, opts);
     },
 
     // -----------------------------------------------------------------------
@@ -173,6 +245,25 @@ export function buildHelpers(
     // -----------------------------------------------------------------------
     // Features — backward-compat wrappers
     // -----------------------------------------------------------------------
+
+    // helpers.deployFeature(env, featureName, opts) → deployFeature(instance, clientId, featureName, opts)
+    deployFeature: async (_env: unknown, featureName: string, opts?: unknown) => {
+      const {deployFeature: _deployFeature} = await import('./features.js');
+      const clientId = instance.auth.oauth?.clientId ?? 'unknown';
+      return _deployFeature(instance, clientId, featureName, opts as Parameters<typeof _deployFeature>[3]);
+    },
+
+    // helpers.removeFeature(env, featureName, opts) → removeFeature(instance, featureName, opts)
+    removeFeature: async (_env: unknown, featureName: string, opts?: unknown) => {
+      const {removeFeature: _removeFeature} = await import('./features.js');
+      return _removeFeature(instance, featureName, opts as Parameters<typeof _removeFeature>[2]);
+    },
+
+    // helpers.collectFeatures(dir) → collectFeatures(dir)
+    collectFeatures: async (dir: string) => {
+      const {collectFeatures: _collectFeatures} = await import('./features.js');
+      return _collectFeatures(dir);
+    },
 
     // helpers.getInstanceFeatureState(env) → getInstanceFeatureState(instance)
     getInstanceFeatureState: async (_env?: unknown) => {

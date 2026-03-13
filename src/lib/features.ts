@@ -194,10 +194,13 @@ export async function deployFeature(
       .filter((c) => !excludeCartridges.includes(c.dest));
 
     if (filtered.length) {
-      // Get active code version if not set
-      const activeVersion = await getActiveCodeVersion(instance);
-      if (!activeVersion) {
-        throw new Error('Unable to determine active code version');
+      // Set active code version if not already set
+      if (!instance.config.codeVersion) {
+        const activeVersion = await getActiveCodeVersion(instance);
+        if (!activeVersion?.id) {
+          throw new Error('Unable to determine active code version');
+        }
+        instance.config.codeVersion = activeVersion.id;
       }
 
       logger.info('Syncing feature cartridges...');

@@ -66,8 +66,17 @@ async function wrapResponse(response: Response): Promise<AxiosLikeResponse> {
   };
 
   if (!response.ok) {
+    let detail = '';
+    if (data && typeof data === 'object') {
+      const fault = (data as Record<string, unknown>).fault;
+      if (fault && typeof fault === 'object') {
+        detail = `: ${(fault as Record<string, unknown>).message ?? JSON.stringify(fault)}`;
+      } else {
+        try { detail = `: ${JSON.stringify(data)}`; } catch { /* ignore */ }
+      }
+    }
     throw new AxiosLikeError(
-      `Request failed with status ${response.status}`,
+      `Request failed with status ${response.status}${detail}`,
       wrapped,
     );
   }
@@ -101,6 +110,7 @@ class LegacyHttpClient {
     if (data !== undefined) {
       init.headers = {'Content-Type': 'application/json'};
       init.body = JSON.stringify(data);
+      (init as Record<string, unknown>).duplex = 'half';
     }
 
     const response = await this.auth.fetch(url, init);
@@ -155,8 +165,18 @@ class LegacyWebdavClient {
     return wrapResponse(response);
   }
 
-  async request(path: string, init?: RequestInit): Promise<AxiosLikeResponse> {
-    const response = await this.webdav.request(path, init);
+  async request(pathOrConfig: string | {method?: string; url?: string; data?: unknown; body?: unknown}, init?: RequestInit): Promise<AxiosLikeResponse> {
+    // Backward compat: axios-style config object {method, url, data}
+    if (typeof pathOrConfig === 'object' && pathOrConfig !== null) {
+      const cfg = pathOrConfig;
+      const reqInit: RequestInit = {method: cfg.method ?? 'GET'};
+      if (cfg.data !== undefined || cfg.body !== undefined) {
+        reqInit.body = (cfg.data ?? cfg.body) as RequestInit['body'];
+      }
+      const response = await this.webdav.request(cfg.url ?? '/', reqInit);
+      return wrapResponse(response);
+    }
+    const response = await this.webdav.request(pathOrConfig, init);
     return wrapResponse(response);
   }
 }

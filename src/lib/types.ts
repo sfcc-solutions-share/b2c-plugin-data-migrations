@@ -193,6 +193,10 @@ export interface MigrationHelpers {
   siteArchiveImportText: (...args: any[]) => Promise<void>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   siteArchiveExportText: (...args: any[]) => Promise<Map<string, string>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  siteArchiveExportJSON: (...args: any[]) => Promise<Map<string, unknown>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  siteArchiveImportJSON: (...args: any[]) => Promise<void>;
 
   // Code
   findCartridges: typeof findCartridges;
@@ -208,6 +212,12 @@ export interface MigrationHelpers {
   migrateInstance: (...args: any[]) => Promise<void>;
 
   // Features
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  deployFeature: (...args: any[]) => Promise<void>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  removeFeature: (...args: any[]) => Promise<void>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  collectFeatures: (...args: any[]) => Promise<FeatureDefinition[]>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getInstanceFeatureState: (...args: any[]) => Promise<InstanceFeatureState | null>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
