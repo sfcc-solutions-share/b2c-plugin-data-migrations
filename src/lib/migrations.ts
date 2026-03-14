@@ -275,7 +275,7 @@ export async function migrateInstance(
   try {
     const timestamp = new Date().toISOString().replace(/:/g, '');
     await instance.webdav.put(
-      `/IMPEX/log/b2c-tools/migration-${timestamp}.log`,
+      `/IMPEX/log/b2c-cli-migrations/migration-${timestamp}.log`,
       Buffer.from(logMessages.join('\n')),
     );
   } catch {
