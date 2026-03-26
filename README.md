@@ -7,7 +7,7 @@ This plugin is a port of the migration and feature system from [b2c-tools](https
 ## Installation
 
 ```bash
-b2c plugins install b2c-plugin-data-migrations
+b2c plugins install sfcc-solutions-share/b2c-plugin-data-migrations
 ```
 
 ### Peer Dependencies
@@ -20,20 +20,82 @@ Optional: `inquirer` for interactive feature deployment prompts.
 
 ## Prerequisites
 
-Migrations require an OAuth API client ID with OCAPI Data API access and WebDAV write access to `/impex`. A freshly launched On-Demand Sandbox already has the necessary permissions when using the same client ID it was launched with.
+Migrations require an OAuth API client ID with OCAPI Data API access and WebDAV write access. A freshly launched On-Demand Sandbox already has the necessary permissions when using the same client ID it was launched with.
 
-Minimum OCAPI Data API resources:
+### OCAPI Data API
 
-- `/code_versions` (GET)
-- `/code_versions/*` (PATCH, DELETE)
-- `/jobs/*/executions` (POST)
-- `/jobs/*/executions/*` (GET)
-- `/global_preferences/preference_groups/{group_id}/{instance_type}` (GET, PATCH)
+```json
+{
+    "_v": "18.1",
+    "clients": [
+        {
+            "client_id": "...",
+            "resources": [
+                {
+                    "methods": ["get"],
+                    "read_attributes": "(**)",
+                    "resource_id": "/code_versions",
+                    "write_attributes": "(**)"
+                },
+                {
+                    "methods": ["patch", "delete"],
+                    "read_attributes": "(**)",
+                    "resource_id": "/code_versions/*",
+                    "write_attributes": "(**)"
+                },
+                {
+                    "methods": ["post"],
+                    "read_attributes": "(**)",
+                    "resource_id": "/jobs/*/executions",
+                    "write_attributes": "(**)"
+                },
+                {
+                    "methods": ["get"],
+                    "read_attributes": "(**)",
+                    "resource_id": "/jobs/*/executions/*",
+                    "write_attributes": "(**)"
+                },
+                {
+                    "methods": ["get", "patch"],
+                    "read_attributes": "(**)",
+                    "resource_id": "/global_preferences/preference_groups/*",
+                    "write_attributes": "(**)"
+                },
+                {
+                    "methods": ["get", "put", "patch", "delete"],
+                    "read_attributes": "(**)",
+                    "resource_id": "/custom_objects/*",
+                    "write_attributes": "(**)"
+                }
+            ]
+        }
+    ]
+}
+```
 
-WebDAV permissions:
+### WebDAV
 
-- `/impex` (read_write)
-- `/cartridges` (read_write) - for cartridge/feature operations
+*Note: WebDAV access will prefer username/password (i.e. access key) authentication if provided. The following is only required for API client ID authentication.*
+
+```json
+{
+    "clients": [
+        {
+            "client_id": "...",
+            "permissions": [
+                {
+                    "path": "/impex",
+                    "operations": ["read_write"]
+                },
+                {
+                    "path": "/cartridges",
+                    "operations": ["read_write"]
+                }
+            ]
+        }
+    ]
+}
+```
 
 ## Why Migrations?
 
