@@ -93,6 +93,15 @@ export interface MigrationLifecycleFunctions {
 // Migration Options
 // ---------------------------------------------------------------------------
 
+export interface RunMigrationScriptOptions {
+  /** Vars to pass to the migration script */
+  vars?: Record<string, unknown>;
+  /** SCAPI short code for legacy env.scapi support */
+  shortCode?: string;
+  /** Record the migration as applied in instance state (default: true) */
+  apply?: boolean;
+}
+
 export interface MigrateInstanceOptions {
   /** Array of regular expression strings to exclude migrations */
   exclude?: string[];

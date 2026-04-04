@@ -130,6 +130,32 @@ b2c migrations run --no-apply
 b2c migrations run --vars siteId=RefArch --vars-json '{"apiKey":"abc123"}'
 ```
 
+## Running a Single Migration Script
+
+Use `migrations run-script` to execute a single `.js` migration file against an instance. This is the equivalent of the legacy b2c-tools `import run <file.js>` command.
+
+```bash
+# Run a single migration script
+b2c migrations run-script ./migrations/20240605T082733_pwdless_login.js -s my-sandbox.demandware.net
+
+# Run without recording it as applied
+b2c migrations run-script ./migrations/my-script.js --no-apply
+
+# Pass variables
+b2c migrations run-script ./migrations/my-script.js --vars siteId=RefArch --vars-json '{"apiKey":"abc123"}
+```
+
+The script receives the same `{ instance, env, logger, helpers, vars }` arguments as migrations executed via `migrations run`. If a `setup.js` file exists in the same directory as the script, its `init()` lifecycle hook is called before execution.
+
+### Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--apply` / `--no-apply` | `true` | Whether to record the migration as applied in instance state |
+| `--vars` | | Variables as `key=value` pairs (multiple allowed) |
+| `--vars-file` | | Path to a JSON file with variables |
+| `--vars-json` | | Inline JSON string with variables |
+
 ### Flags
 
 | Flag | Default | Description |
@@ -381,6 +407,7 @@ For comprehensive documentation on creating and managing features, see [FEATURES
 | Command | Description |
 |---------|-------------|
 | `b2c migrations run` | Run and apply data migrations to a B2C Commerce instance |
+| `b2c migrations run-script <file>` | Run a single migration script against an instance |
 | `b2c migrations feature deploy [FEATURE]` | Deploy or update a feature on an instance |
 | `b2c migrations feature remove [FEATURE]` | Remove a deployed feature |
 | `b2c migrations feature update` | Redeploy all installed features |
@@ -397,6 +424,7 @@ This plugin ports the migration and feature system from [b2c-tools](https://gith
 
 | b2c-tools | This plugin |
 |-----------|-------------|
+| `b2c-tools import run <file.js>` | `b2c migrations run-script <file>` |
 | `b2c-tools import migrate` | `b2c migrations run` |
 | `b2c-tools feature deploy` | `b2c migrations feature deploy` |
 | `b2c-tools feature remove` | `b2c migrations feature remove` |
