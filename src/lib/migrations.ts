@@ -16,6 +16,7 @@ import type {
   MigrationLifecycleFunctions,
   MigrationScriptArguments,
   MigrateInstanceOptions,
+  RunMigrationScriptOptions,
 } from './types.js';
 
 const _require = createRequire(import.meta.url);
@@ -37,6 +38,74 @@ export async function collectMigrations(dir: string, exclude: string[] = []): Pr
     .filter((entry) => entry.name !== 'setup.js')
     .map((d) => d.name)
     .sort((a, b) => a.localeCompare(b, 'en', {numeric: false}));
+}
+
+/**
+ * Run a single migration script file against an instance.
+ *
+ * This is the equivalent of the legacy b2c-tools `import run <file.js>` command.
+ * It loads the target .js file, optionally loads setup.js from the same directory,
+ * calls the init() lifecycle hook, then executes the migration function.
+ */
+export async function runMigrationScript(
+  instance: B2CInstance,
+  target: string,
+  {vars = {}, shortCode, apply = true}: RunMigrationScriptOptions = {},
+): Promise<void> {
+  const logger = getLogger();
+  const resolvedTarget = path.resolve(target);
+  const migrationName = path.basename(resolvedTarget);
+
+  const helpers = buildHelpers(instance, {
+    migrationsDir: path.dirname(resolvedTarget),
+    vars,
+  });
+  const env = new LegacyEnvironment(instance, {shortCode});
+
+  const migrationScriptArguments: MigrationScriptArguments = {
+    instance,
+    logger,
+    helpers,
+    vars,
+    env,
+  };
+
+  // Load setup.js lifecycle module from the same directory if present
+  let lifeCycleModule: MigrationLifecycleFunctions = {};
+  const setupPath = path.join(path.dirname(resolvedTarget), 'setup.js');
+  if (fs.existsSync(setupPath)) {
+    lifeCycleModule = _require(path.resolve(setupPath));
+  }
+
+  if (typeof lifeCycleModule.init === 'function') {
+    logger.debug('Calling lifecycle function init');
+    await lifeCycleModule.init(migrationScriptArguments);
+  }
+
+  const migrationScript = _require(resolvedTarget);
+
+  if (typeof migrationScript !== 'function') {
+    throw new Error(`${target} is not a valid migration; should export a function`);
+  }
+
+  logger.info(`Running ${migrationName}...`);
+  await migrationScript.call(null, migrationScriptArguments);
+
+  if (apply) {
+    const instanceState = await getInstanceState(instance);
+    if (instanceState) {
+      const migrations = instanceState.migrations.slice();
+      if (!migrations.includes(migrationName)) {
+        migrations.push(migrationName);
+        await updateInstanceMigrations(instance, migrations);
+        logger.info(`Recorded ${migrationName} as applied.`);
+      }
+    } else {
+      logger.warn('Could not read instance state; migration not recorded.');
+    }
+  }
+
+  logger.info('Done.');
 }
 
 /**

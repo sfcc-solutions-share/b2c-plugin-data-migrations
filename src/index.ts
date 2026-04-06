@@ -4,6 +4,7 @@ export type {
   MigrationHelpers,
   MigrationLifecycleFunctions,
   MigrateInstanceOptions,
+  RunMigrationScriptOptions,
   ToolkitInstanceState,
   FeatureDefinition,
   FeatureContext,
@@ -12,7 +13,7 @@ export type {
 } from './lib/types.js';
 
 export {buildHelpers} from './lib/helpers.js';
-export {migrateInstance, collectMigrations} from './lib/migrations.js';
+export {migrateInstance, collectMigrations, runMigrationScript} from './lib/migrations.js';
 export {collectFeatures, deployFeature, removeFeature} from './lib/features.js';
 export {
   getInstanceState,
