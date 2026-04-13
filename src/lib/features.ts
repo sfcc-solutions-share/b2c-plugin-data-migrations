@@ -156,16 +156,27 @@ export async function deployFeature(
   if (questions && questions.length > 0) {
     // Dynamic import of @inquirer/prompts for interactive question asking
     // Questions follow the inquirer format with name/type/message properties
-    try {
-      const inquirer = await import('inquirer');
-      const answers = await inquirer.default.prompt(
-        questions as Parameters<typeof inquirer.default.prompt>[0],
-        featureVars,
-      );
-      featureVars = {...featureVars, ...answers};
-    } catch {
+    if (process.stdin.isTTY) {
+      try {
+        const inquirer = await import('inquirer');
+        const answers = await inquirer.default.prompt(
+          questions as Parameters<typeof inquirer.default.prompt>[0],
+          featureVars,
+        );
+        featureVars = {...featureVars, ...answers};
+      } catch (e: unknown) {
+        // Exit cleanly if user pressed Ctrl+C
+        if (e instanceof Error && e.name === 'ExitPromptError') {
+          process.exit(130);
+        }
+        logger.warn(
+          'inquirer not available; skipping interactive questions. Pass all vars via --vars flags.',
+        );
+      }
+    } else {
+      // Non-interactive (CI) — skip prompts, use existing vars
       logger.warn(
-        'inquirer not available; skipping interactive questions. Pass all vars via --vars flags.',
+        'Non-interactive environment detected; skipping interactive questions. Pass all vars via --vars flags.',
       );
     }
   }
