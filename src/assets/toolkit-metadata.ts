@@ -2,6 +2,12 @@ export const toolkitMetadata = `<?xml version="1.0" encoding="UTF-8"?>
 <metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
     <type-extension type-id="OrganizationPreferences">
         <custom-attribute-definitions>
+            <attribute-definition attribute-id="b2cToolkitDataSets">
+                <display-name xml:lang="x-default">b2c-tools Applied Data Sets</display-name>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
             <attribute-definition attribute-id="b2cToolkitDataVersion">
                 <display-name xml:lang="x-default">b2c-tools Metadata Version</display-name>
                 <description xml:lang="x-default"></description>
@@ -36,6 +42,7 @@ export const toolkitMetadata = `<?xml version="1.0" encoding="UTF-8"?>
                 <display-name xml:lang="x-default">b2c-tools</display-name>
                 <attribute attribute-id="b2cToolkitDataVersion"/>
                 <attribute attribute-id="b2cToolsVars"/>
+                <attribute attribute-id="b2cToolkitDataSets"/>
                 <attribute attribute-id="b2cToolkitMigrations"/>
                 <attribute attribute-id="b2cToolsBootstrappedClientIDs"/>
                 <attribute attribute-id="b2cToolsFeaturesVersion"/>
