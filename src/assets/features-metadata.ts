@@ -22,6 +22,7 @@ export const featuresMetadata = `<?xml version="1.0" encoding="UTF-8"?>
                 <display-name xml:lang="x-default">b2c-tools</display-name>
                 <attribute attribute-id="b2cToolkitDataVersion"/>
                 <attribute attribute-id="b2cToolsVars"/>
+                <attribute attribute-id="b2cToolkitDataSets"/>
                 <attribute attribute-id="b2cToolkitMigrations"/>
                 <attribute attribute-id="b2cToolsBootstrappedClientIDs"/>
                 <attribute attribute-id="b2cToolsFeaturesVersion"/>

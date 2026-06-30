@@ -123,8 +123,24 @@ export default class MigrationsRun extends InstanceCommand<typeof MigrationsRun>
       this.error(`Migrations directory does not exist: ${dir}${hint}`);
     }
 
+    // CLI --exclude flags take precedence; fall back to package.json b2c.excludeMigrations
+    let exclude = flags.exclude;
+    if (!exclude || exclude.length === 0) {
+      try {
+        const pkgPath = path.resolve(flags['migrations-dir'], '..', 'package.json');
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+        const b2c = pkg.b2c || pkg['b2c-tools'] || {};
+        const configured = b2c.excludeMigrations || b2c['exclude-migrations'];
+        if (Array.isArray(configured) && configured.length > 0) {
+          exclude = configured;
+        }
+      } catch {
+        // no package.json or invalid — use no excludes
+      }
+    }
+
     await migrateInstance(this.instance, clientId, dir, {
-      exclude: flags.exclude,
+      exclude,
       apply: flags.apply,
       dryRun: flags['dry-run'],
       forceBootstrap: flags['force-bootstrap'],
