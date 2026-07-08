@@ -59,6 +59,9 @@ export default class MigrationsRun extends InstanceCommand<typeof MigrationsRun>
       description: 'Path to migrations directory',
       default: './migrations',
     }),
+    'features-dir': Flags.string({
+      description: 'Path to features directory (default: sibling "features" folder relative to migrations-dir)',
+    }),
     'force-bootstrap': Flags.boolean({
       description: 'Force a bootstrap install/upgrade',
       default: false,
@@ -148,6 +151,7 @@ export default class MigrationsRun extends InstanceCommand<typeof MigrationsRun>
       vars,
       showNotes: flags.notes,
       shortCode: this.resolvedConfig.values.shortCode,
+      featuresDir: flags['features-dir'],
     });
   }
 }

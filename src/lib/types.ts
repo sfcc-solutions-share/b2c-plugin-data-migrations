@@ -119,6 +119,8 @@ export interface MigrateInstanceOptions {
   showNotes?: boolean;
   /** SCAPI short code for legacy env.scapi support */
   shortCode?: string;
+  /** Path to features directory (default: resolves to ./features relative to CWD) */
+  featuresDir?: string;
 }
 
 // ---------------------------------------------------------------------------

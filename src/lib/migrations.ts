@@ -128,11 +128,12 @@ export async function migrateInstance(
     vars = {},
     showNotes = true,
     shortCode,
+    featuresDir,
   }: MigrateInstanceOptions = {},
 ): Promise<void> {
   const logger = getLogger();
 
-  const helpers = buildHelpers(instance, {migrationsDir: dir, vars});
+  const helpers = buildHelpers(instance, {migrationsDir: dir, featuresDir, vars});
   const env = new LegacyEnvironment(instance, {shortCode});
   const migrationScriptArguments: MigrationScriptArguments = {
     instance,
