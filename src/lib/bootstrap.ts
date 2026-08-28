@@ -1,6 +1,6 @@
 import type {B2CInstance} from '@salesforce/b2c-tooling-sdk/instance';
 import {getLogger} from '@salesforce/b2c-tooling-sdk/logging';
-import {siteArchiveImport} from '@salesforce/b2c-tooling-sdk/operations/jobs';
+import {siteArchiveImportWithRetry} from './retry.js';
 import {toolkitMetadata} from '../assets/toolkit-metadata.js';
 import {featuresMetadata} from '../assets/features-metadata.js';
 import {createArchiveFromTextMap} from './archive-utils.js';
@@ -85,7 +85,7 @@ export async function bootstrapMigrations(
   );
 
   try {
-    await siteArchiveImport(instance, archiveBuffer, {archiveName: 'b2c-tools-bootstrap'});
+    await siteArchiveImportWithRetry(instance, archiveBuffer, {archiveName: 'b2c-tools-bootstrap'});
   } catch (e: unknown) {
     const err = e as {response?: {status?: number}};
     if (err.response?.status === 403) {
@@ -165,7 +165,7 @@ export async function bootstrapFeatures(
   );
 
   try {
-    await siteArchiveImport(instance, archiveBuffer, {
+    await siteArchiveImportWithRetry(instance, archiveBuffer, {
       archiveName: 'b2c-tools-features-bootstrap',
     });
   } catch (e: unknown) {

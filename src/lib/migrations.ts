@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import {createRequire} from 'node:module';
 import type {B2CInstance} from '@salesforce/b2c-tooling-sdk/instance';
 import {getLogger} from '@salesforce/b2c-tooling-sdk/logging';
-import {siteArchiveImport} from '@salesforce/b2c-tooling-sdk/operations/jobs';
+import {siteArchiveImportWithRetry} from './retry.js';
 import {buildHelpers} from './helpers.js';
 import {LegacyEnvironment} from './environment.js';
 import {
@@ -280,7 +280,7 @@ export async function migrateInstance(
       if (runMigration !== false) {
         try {
           if (fileStat.isDirectory()) {
-            await siteArchiveImport(instance, path.join(dir, migration));
+            await siteArchiveImportWithRetry(instance, path.join(dir, migration));
           } else {
             const migrationScript = _require(path.resolve(target));
             if (typeof migrationScript !== 'function') {

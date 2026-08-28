@@ -17,6 +17,7 @@ import {
 } from '@salesforce/b2c-tooling-sdk/operations/code';
 import * as xml2js from 'xml2js';
 import {createArchiveFromTextMap, extractArchiveToTextMap} from './archive-utils.js';
+import {siteArchiveImportWithRetry} from './retry.js';
 import {getInstanceFeatureState, updateFeatureState} from './state.js';
 import type {MigrationHelpers, GlobalConfig} from './types.js';
 
@@ -31,7 +32,7 @@ async function siteArchiveImportText(
 ): Promise<void> {
   const archiveName = options.archiveName ?? `text-import-${Date.now()}`;
   const buffer = await createArchiveFromTextMap(data, archiveName);
-  await siteArchiveImport(instance, buffer, {archiveName});
+  await siteArchiveImportWithRetry(instance, buffer, {archiveName});
 }
 
 /**
@@ -93,7 +94,7 @@ async function siteArchiveImportJSON(
   }
   const archiveName = options.archiveName ?? `json-import-${Date.now()}`;
   const buffer = await createArchiveFromTextMap(textMap, archiveName);
-  await siteArchiveImport(instance, buffer, {archiveName});
+  await siteArchiveImportWithRetry(instance, buffer, {archiveName});
 }
 
 function sleep(ms: number): Promise<void> {
@@ -172,7 +173,7 @@ export function buildHelpers(
 
     // helpers.siteArchiveImport(env, target, opts?) → SDK siteArchiveImport(instance, target, opts?)
     siteArchiveImport: async (_env: unknown, target: unknown, opts?: unknown) => {
-      return siteArchiveImport(
+      return siteArchiveImportWithRetry(
         instance,
         target as Parameters<typeof siteArchiveImport>[1],
         opts as Parameters<typeof siteArchiveImport>[2],
