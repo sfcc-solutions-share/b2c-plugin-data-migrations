@@ -3,8 +3,6 @@ import type {B2CInstance} from '@salesforce/b2c-tooling-sdk/instance';
 import {getLogger} from '@salesforce/b2c-tooling-sdk/logging';
 import {
   siteArchiveImport,
-  siteArchiveExport,
-  siteArchiveExportToBuffer,
   executeJob,
   waitForJob,
   type ExportDataUnitsConfiguration,
@@ -17,7 +15,11 @@ import {
 } from '@salesforce/b2c-tooling-sdk/operations/code';
 import * as xml2js from 'xml2js';
 import {createArchiveFromTextMap, extractArchiveToTextMap} from './archive-utils.js';
-import {siteArchiveImportWithRetry} from './retry.js';
+import {
+  siteArchiveImportWithRetry,
+  siteArchiveExportWithRetry,
+  siteArchiveExportToBufferWithRetry,
+} from './retry.js';
 import {getInstanceFeatureState, updateFeatureState} from './state.js';
 import type {MigrationHelpers, GlobalConfig} from './types.js';
 
@@ -42,7 +44,7 @@ async function siteArchiveExportText(
   instance: B2CInstance,
   dataUnits: Partial<ExportDataUnitsConfiguration>,
 ): Promise<Map<string, string>> {
-  const result = await siteArchiveExportToBuffer(instance, dataUnits);
+  const result = await siteArchiveExportToBufferWithRetry(instance, dataUnits);
   return extractArchiveToTextMap(result.data);
 }
 
@@ -182,7 +184,7 @@ export function buildHelpers(
 
     // helpers.siteArchiveExport(env, dataUnits, filename?) → SDK siteArchiveExport(instance, dataUnits)
     siteArchiveExport: async (_env: unknown, dataUnits: unknown) => {
-      return siteArchiveExport(instance, dataUnits as Partial<ExportDataUnitsConfiguration>);
+      return siteArchiveExportWithRetry(instance, dataUnits as Partial<ExportDataUnitsConfiguration>);
     },
 
     // helpers.siteArchiveImportText(env, data, opts?) → create zip + import
