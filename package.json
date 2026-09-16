@@ -30,7 +30,7 @@
   },
   "peerDependencies": {
     "@oclif/core": "^4",
-    "@salesforce/b2c-tooling-sdk": ">=0.8.0"
+    "@salesforce/b2c-tooling-sdk": ">=0.8.0 <2"
   },
   "devDependencies": {
     "@oclif/core": "^4",
