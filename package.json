@@ -1,6 +1,6 @@
 {
   "name": "b2c-plugin-data-migrations",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "B2C CLI plugin for data migrations and feature management",
   "author": "Charles Lavery",
   "license": "MIT",
@@ -30,11 +30,11 @@
   },
   "peerDependencies": {
     "@oclif/core": "^4",
-    "@salesforce/b2c-tooling-sdk": ">=0.8.0 <2"
+    "@salesforce/b2c-tooling-sdk": ">=2.0.0"
   },
   "devDependencies": {
     "@oclif/core": "^4",
-    "@salesforce/b2c-tooling-sdk": "^1.0.0",
+    "@salesforce/b2c-tooling-sdk": "^2.0.0",
     "@types/node": "^22",
     "typescript": "^5"
   },
