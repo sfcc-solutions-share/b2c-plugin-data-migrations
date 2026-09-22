@@ -12,6 +12,7 @@ import {
   uploadCartridges,
   deleteCartridges,
   reloadCodeVersion,
+  OcapiScriptsBackend,
 } from '@salesforce/b2c-tooling-sdk/operations/code';
 import * as xml2js from 'xml2js';
 import {createArchiveFromTextMap, extractArchiveToTextMap} from './archive-utils.js';
@@ -224,16 +225,16 @@ export function buildHelpers(
       return deleteCartridges(instance, cartridges as Parameters<typeof deleteCartridges>[1]);
     },
 
-    // helpers.reloadCodeVersion(env) → SDK reloadCodeVersion(instance)
+    // helpers.reloadCodeVersion(env) → SDK reloadCodeVersion(backend)
     reloadCodeVersion: async (_env?: unknown) => {
-      return reloadCodeVersion(instance);
+      return reloadCodeVersion(new OcapiScriptsBackend(instance));
     },
 
     // helpers.syncCartridges(env, cartridges, reload, opts) → upload + optional reload
     syncCartridges: async (_env: unknown, cartridges: unknown, reload?: boolean, _opts?: unknown) => {
       await uploadCartridges(instance, cartridges as Parameters<typeof uploadCartridges>[1]);
       if (reload) {
-        await reloadCodeVersion(instance);
+        await reloadCodeVersion(new OcapiScriptsBackend(instance));
       }
     },
 
